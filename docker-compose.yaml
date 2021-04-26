@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  fabricdns:
+    image: go-wild-dns:v0.1
+    container_name: fabric_dns
+    restart: always
+    ports:
+      - "53:53"
+    volumes:
+      - ./conf.yaml:/opt/go-wild-dns/conf.yaml
