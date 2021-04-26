@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/AndrianBdn/go-wild-dns/config"
 	"github.com/miekg/dns"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -22,6 +23,12 @@ const ipDiscoveryURL3 string = "https://ifconfig.co/ip"
 var staticA map[string]net.IP
 var defaultIP net.IP
 var domainSuffix string
+
+func init() {
+	config.ReadConfig()
+	// 從config 讀取dns records
+	staticA = config.FetchDNSRecords()
+}
 
 func ipFromHost(host string, def net.IP) net.IP {
 	var sip string
@@ -125,8 +132,13 @@ func handleDnsRequest(w dns.ResponseWriter, r *dns.Msg) {
 
 	_ = w.WriteMsg(m)
 }
+
 func handleARequest(q dns.Question) *dns.A {
 	qNameLower := strings.ToLower(q.Name)
+	// 目前似乎傳進來的查詢domain都會自動加上"."結尾，使用此workaround去除"."
+	if strings.HasSuffix(qNameLower, ".") {
+		qNameLower = qNameLower[:len(qNameLower)-1]
+	}
 	var ip net.IP
 
 	if val, set := staticA[qNameLower]; set {
@@ -226,8 +238,6 @@ func discoverOtherNS() {
 	if domainSuffix == "" {
 		log.Fatal("Error: DOMAIN_SUFFIX must be set before")
 	}
-
-	staticA = make(map[string]net.IP)
 
 	for i := 1; i <= 4; i++ {
 		key := "NS" + strconv.Itoa(i)

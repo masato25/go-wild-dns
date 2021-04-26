@@ -1,0 +1,5 @@
+env:
+  DOMAIN_SUFFIX: "8.8.8.8"
+dns:
+  records:
+    masato25.com: "99.99.99.99"
