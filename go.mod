@@ -1,4 +1,4 @@
-module github.com/AndrianBdn/go-wild-dns
+module github.com/masato25/go-wild-dns
 
 go 1.15
 

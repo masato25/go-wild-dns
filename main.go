@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/AndrianBdn/go-wild-dns/config"
+	"github.com/masato25/go-wild-dns/config"
 	"github.com/miekg/dns"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
