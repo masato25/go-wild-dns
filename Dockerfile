@@ -12,4 +12,5 @@ RUN mkdir -p /opt/go-wild-dns
 COPY --from=builder /go/src/github.com/masato25/go-wild-dns/go-wild-dns /opt/go-wild-dns
 WORKDIR /opt/go-wild-dns
 COPY go-wild-dns .
+RUN apk add --no-cache libc6-compat
 CMD ./go-wild-dns
