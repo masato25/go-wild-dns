@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/miekg/dns"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"os"
