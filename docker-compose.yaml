@@ -6,6 +6,6 @@ services:
     container_name: fabric_dns
     restart: always
     ports:
-      - "53:53"
+      - "53:53/udp"
     volumes:
       - ./conf.yaml:/opt/go-wild-dns/conf.yaml
