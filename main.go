@@ -117,62 +117,70 @@ func handleDnsRequest(w dns.ResponseWriter, r *dns.Msg) {
 
 	if r.Opcode == dns.OpcodeQuery {
 		for _, q := range m.Question {
-			var r dns.RR
 			if q.Qtype == dns.TypeTXT {
-				r = handleTxtRequest(q)
+				r := handleTxtRequest(q)
+				if r == nil {
+					return
+				}
+				m.Answer = append(m.Answer, r)
 			} else {
 				// default - will reply with A request
-				r = handleARequest(q)
+				rs := handleARequest(q)
+				if len(rs) == 0 {
+					return
+				}
+				for _, rr := range rs {
+					m.Answer = append(m.Answer, rr)
+				}
 			}
-			if isNil(r) {
-				return
-			}
-
-			m.Answer = append(m.Answer, r)
 		}
 	}
 
 	_ = w.WriteMsg(m)
 }
 
-func handleARequest(q dns.Question) *dns.A {
+func handleARequest(q dns.Question) []*dns.A {
 	qNameLower := strings.ToLower(q.Name)
 	// 目前似乎傳進來的查詢domain都會自動加上"."結尾，使用此workaround去除"."
 	if strings.HasSuffix(qNameLower, ".") {
 		qNameLower = qNameLower[:len(qNameLower)-1]
 	}
-	var ip net.IP
+	ip := []net.IP{}
 
 	if val, set := staticA[qNameLower]; set {
-		ip = val
+		ip = append(ip, val)
 	} else {
-		if queryip := mdns.Lookup(q.Name); queryip != nil {
-			ip = *queryip
+		if queryip := mdns.Lookup(q.Name); len(queryip) != 0 {
+			for _, q := range queryip {
+				ip = append(ip, *q)
+			}
 		} else {
-			ip = ipFromHost(q.Name, defaultIP)
 			if !strings.HasSuffix(qNameLower, domainSuffix) {
 				if viper.GetBool("dns.default_ip.use_server_ip") {
-					ip = defaultIP
+					ip = append(ip, defaultIP)
 				} else if overwrite_ip := viper.GetString("dns.default_ip.overwrite_ip"); len(overwrite_ip) > 0 {
-					ip = net.ParseIP(overwrite_ip)
+					ip = append(ip, net.ParseIP(overwrite_ip))
 				} else {
-					ip = net.ParseIP("127.0.0.1")
+					ip = append(ip, net.ParseIP("127.0.0.1"))
 				}
 			}
 		}
 	}
 
-	aRec := dns.A{
-		Hdr: dns.RR_Header{
-			Name:   q.Name,
-			Rrtype: dns.TypeA,
-			Class:  dns.ClassINET,
-			Ttl:    86400,
-		},
-		A: ip,
+	aRec := []*dns.A{}
+	for _, i := range ip {
+		aRec = append(aRec, &dns.A{
+			Hdr: dns.RR_Header{
+				Name:   q.Name,
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    86400,
+			},
+			A: i,
+		})
+		log.Debugf("resolving %v to %v", q.Name, ip)
 	}
-	log.Printf("resolving %v to %v", q.Name, ip)
-	return &aRec
+	return aRec
 }
 
 func handleTxtRequest(q dns.Question) *dns.TXT {

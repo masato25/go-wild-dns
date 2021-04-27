@@ -41,13 +41,13 @@ func resolverBuilder(nshost string) *net.Resolver {
 	return r
 }
 
-func Lookup(domainanme string) (ip *net.IP) {
+func Lookup(domainanme string) (ip []*net.IP) {
 	log.Debugf("lookup '%s' with external dns", domainanme)
 	for _, d := range dnslist {
 		ips, _ := d.LookupHost(context.Background(), domainanme)
 		if len(ips) != 0 {
 			tip := net.ParseIP(ips[0])
-			ip = &tip
+			ip = append(ip, &tip)
 			break
 		}
 	}
