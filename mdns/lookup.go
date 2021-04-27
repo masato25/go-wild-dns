@@ -5,6 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -19,7 +20,7 @@ func init() {
 func Initialization() {
 	dnslist = []*net.Resolver{}
 	nss := viper.GetStringSlice("dns.nameserver")
-	log.Info("nss", nss)
+	log.Infof("nameservers: %s", strings.Join(nss, ","))
 	for _, n := range nss {
 		r := resolverBuilder(n)
 		dnslist = append(dnslist, r)
@@ -33,6 +34,7 @@ func resolverBuilder(nshost string) *net.Resolver {
 			d := net.Dialer{
 				Timeout: time.Millisecond * time.Duration(10000),
 			}
+			log.Debugf("== lookup with nshost %s ==\n", nshost)
 			return d.DialContext(ctx, network, nshost)
 		},
 	}
@@ -40,6 +42,7 @@ func resolverBuilder(nshost string) *net.Resolver {
 }
 
 func Lookup(domainanme string) (ip *net.IP) {
+	log.Debugf("lookup '%s' with external dns", domainanme)
 	for _, d := range dnslist {
 		ips, _ := d.LookupHost(context.Background(), domainanme)
 		if len(ips) != 0 {

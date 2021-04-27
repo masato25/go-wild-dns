@@ -1,3 +1,5 @@
+logger:
+  level: "info"
 env:
   DOMAIN_SUFFIX: "8.8.8.8"
 dns:
