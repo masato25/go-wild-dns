@@ -1,5 +1,10 @@
 env:
   DOMAIN_SUFFIX: "8.8.8.8"
 dns:
+  nameserver:
+    - "8.8.8.8:53"
   records:
-    masato25.com: "99.99.99.99"
+    org1.example.com: "88.88.88.88"
+  default_ip:
+    use_server_ip: true
+    overwrite_ip: "10.0.0.1"

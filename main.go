@@ -2,8 +2,10 @@ package main
 
 import (
 	"github.com/masato25/go-wild-dns/config"
+	"github.com/masato25/go-wild-dns/mdns"
 	"github.com/miekg/dns"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -144,9 +146,19 @@ func handleARequest(q dns.Question) *dns.A {
 	if val, set := staticA[qNameLower]; set {
 		ip = val
 	} else {
-		ip = ipFromHost(q.Name, defaultIP)
-		if !strings.HasSuffix(qNameLower, domainSuffix) {
-			ip = defaultIP
+		if queryip := mdns.Lookup(q.Name); queryip != nil {
+			ip = *queryip
+		} else {
+			ip = ipFromHost(q.Name, defaultIP)
+			if !strings.HasSuffix(qNameLower, domainSuffix) {
+				if viper.GetBool("dns.default_ip.use_server_ip") {
+					ip = defaultIP
+				} else if overwrite_ip := viper.GetString("dns.default_ip.overwrite_ip"); len(overwrite_ip) > 0 {
+					ip = net.ParseIP(overwrite_ip)
+				} else {
+					ip = net.ParseIP("127.0.0.1")
+				}
+			}
 		}
 	}
 
@@ -255,6 +267,7 @@ func discoverOtherNS() {
 }
 
 func main() {
+	mdns.Initialization()
 	discoverDomainSuffix()
 	discoverOtherNS()
 	log.Printf("Will serve zone %s\n", domainSuffix)
