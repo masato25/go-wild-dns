@@ -19,11 +19,11 @@ Group=nogroup
 ;    filesystem path (like /opt/var/go-wild-dns) that will contain values for TXT records
 ;
 Environment=DOMAIN_SUFFIX=ip.suf.fix. TXT_RECORDS_PATH=/opt/var/go-wild-dns  NS2=5.4.2.1
-ExecStart=/opt/bin/go-wild-dns
+WorkingDirectory=/opt/go-wild-dns
+ExecStart=/opt/go-wild-dns/go-wild-dns
 Restart=always
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 
 
 [Install]
 WantedBy=multi-user.target
-
