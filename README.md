@@ -39,7 +39,7 @@ ns1.ip.mydomain.io  A 1.2.3.4
 
 Now go to the 1.2.3.4 server (assuming you're using systemd-based Linux):
 
-0. Setup go compiler, build go-wild-dns binary (just run `go build`), copy binary to /opt/bin/go-wild-dns
+0. Setup go compiler, build go-wild-dns binary (just run `go build`), copy binary to /opt/go-wild-dns
 1. Edit go-wild-dns.service: specify your DOMAIN_SUFFIX environment variable. Specify IP of other NS servers if you are using > 1.
 2. cp conf.yaml.example conf.yaml, and modify conf.yaml
 3. mkdir /opt/go-wlid-dns && copy conf.yaml & compiled binary.
